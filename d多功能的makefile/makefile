@@ -265,10 +265,10 @@ head_dir = $(foreach d,$(HEAD_DIR),-I$d)
 lib_dir = $(foreach d,$(LIB_DIR),-L$d)
 
 #动态连接库
-dy_lib	= $(foreach d,$(sort $(DY_LIB)),-l$d)
+dy_lib	= $(foreach d,$(DY_LIB),-l$d)
 
 #静态连接库
-st_lib	= $(foreach d,$(sort $(ST_LIB)),-l$d)
+st_lib	= $(foreach d,$(ST_LIB),-l$d)
 
 #最终的编译选项
 cflags = $(head_dir) $(CFLAGS) 
@@ -302,14 +302,14 @@ cflags += -fpic -shared
 ldflags += -shared
 $(TARGET): $(all_obj)
 	for d in $(SUB_MAKE_DIR);do make -C $$d; done;
-	$(CC) $^ -o $@ $(ldflags) 
+	$(CC) -o $@ $^ $(ldflags) 
 	for i in $(TARGET_DIR);do if [ -d $$i ];then cp $@ $$i;fi;done
 endif
 
 ifeq ($(ACTION),app)    #应用程序
 $(TARGET): $(all_obj)
 	for d in $(SUB_MAKE_DIR);do make -C $$d; done;
-	$(CC) $^ -o $@ $(ldflags) 
+	$(CC) -o $@ $^ $(ldflags) 
 	for i in $(TARGET_DIR);do if [ -d $$i ];then cp $@ $$i;fi;done
 endif
 
