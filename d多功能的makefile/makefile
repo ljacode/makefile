@@ -37,6 +37,8 @@ AR = ar
 #    SUFFIX的值不能够使d和o，因为中间生成的会使用这两个后缀
 # 例:c
 SUFFIX = c
+#子源码路径，只能是当前路径下目录
+SUB_SRC_DIR = xx
 ##########################################################
 #                    可选的变量
 #
@@ -68,7 +70,7 @@ LDFLAGS =
 
 #中间文件存放路径，默认为当前路径，只能指定一个路径
 #例:obj
-OBJ_DIR =  
+OBJ_DIR = 
 
 #头文件路径，可以指定多个路径，当前路径始终包含在内
 #例: ../include
@@ -182,6 +184,11 @@ ifeq ($(SUFFIX),o)
 $(error "SUFFIX's value (o) is invalid!")
 endif
 
+SUB_SRC_DIR := $(strip $(SUB_SRC_DIR))
+ifneq ($(SUB_SRC_DIR),)
+$(foreach var,$(SUB_SRC_DIR),$(call check_dir2,SUB_SRC_DIR,$(var)))
+endif
+
 ACTION := $(strip $(ACTION))
 ifeq ($(ACTION),)
 $(error "ACTION is not set!")
@@ -250,7 +257,7 @@ $(foreach var,$(SUB_MAKE_DIR),$(call check_dir2,SUB_MAKE_DIR,$(var)))
 ##########################################################
 
 #所有.SUFFIX文件
-all_src = $(foreach i,$(SUFFIX),$(wildcard ./*.$(i)))
+all_src = $(foreach i,$(SUFFIX),$(wildcard ./*.$(i) $(patsubst %,./%/*.$(i),$(SUB_SRC_DIR))))
 
 #定义了obj-X变量,x是SUFFIX中的值
 $(eval $(foreach i,$(SUFFIX),$(call set_obj_x,$i,$(OBJ_DIR))))
