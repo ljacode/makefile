@@ -37,8 +37,10 @@ AR = ar
 #    SUFFIX的值不能够使d和o，因为中间生成的会使用这两个后缀
 # 例:c
 SUFFIX = c
-#子源码路径，只能是当前路径下目录
-SUB_SRC_DIR = xx
+#源码子目录，只能是当前路径下目录
+#子目录下的源码的中间文件生在在OBJ_DIR目录下的同名目录中
+#OBJ_DIR目录下的同名目录将会自动创建
+SUB_SRC_DIR = 
 ##########################################################
 #                    可选的变量
 #
@@ -141,12 +143,12 @@ define check_file2
 $(if $(call check_file,$2),$(error "$1's value ($2) does not exist!"),)
 endef
 
-#生成一个变量obj-XX,其中存放当前目录下所有已XX为后缀的文件
+#生成一个变量obj-XX,其中存放所有以XX为后缀的文件
 #  在DIR目录下对应的.o文件
-#例:  $(call set_obj_x,c,DIR)
+#例:  $(call set_obj_x,c,DIR,$(all_src))
 #  定义了obj-c=DIR/XXX.o
 define set_obj_x
-obj-$1 = $(patsubst %.$1,$2/%.o,$(wildcard *.$1))
+obj-$1 = $(patsubst %.$1,$2/%.o,$3)
 endef
 
 ##########################################################
@@ -260,7 +262,7 @@ $(foreach var,$(SUB_MAKE_DIR),$(call check_dir2,SUB_MAKE_DIR,$(var)))
 all_src = $(foreach i,$(SUFFIX),$(wildcard ./*.$(i) $(patsubst %,./%/*.$(i),$(SUB_SRC_DIR))))
 
 #定义了obj-X变量,x是SUFFIX中的值
-$(eval $(foreach i,$(SUFFIX),$(call set_obj_x,$i,$(OBJ_DIR))))
+$(eval $(foreach i,$(SUFFIX),$(call set_obj_x,$i,$(OBJ_DIR),$(all_src))))
 
 #所有.SUFFIX文件对应的.o文件
 all_obj = $(foreach i,$(SUFFIX),$(obj-$i))
@@ -325,7 +327,9 @@ export: $(EXPORT_HEAD)
 	for i in $(EXPORT_HEAD); do for d in $(EXPORT_HEAD_DIR);do cp -rf $$i $$d;echo $$i;echo $$d; done;done
 endif
 clean:
-	rm -f $(OBJ_DIR)/*.o  $(OBJ_DIR)/*.d  $(TARGET)
+	rm -f $(TARGET)
+	find $(OBJ_DIR) -name "*.o" -exec rm -f {} +
+	find $(OBJ_DIR) -name "*.d" -exec rm -f {} +
 
 #obj文件生成规则
 #  cmd_o   文件后缀  obj文件存放的路径
