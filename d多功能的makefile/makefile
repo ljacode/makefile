@@ -58,6 +58,7 @@ TARGET_DIR =
 #    如果$(EXPORT_HEAD)为空，$(EXPORT_HEAD_DIR)为空，不做操作
 #    如果$(EXPORT HEAD_DIR)中有多个目录，头文件被复制到其中的每一个目录下
 #    EXPORT_HEAD和EXPORT_HEAD_DIR将被排序去重
+#    如果头文件中路径中包含目录，会在导出位置创建相应的目录
 EXPORT_HEAD = 
 EXPORT_HEAD_DIR =
 
@@ -324,7 +325,7 @@ endif
 
 ifneq ($(EXPORT_HEAD),)
 export: $(EXPORT_HEAD)
-	for i in $(EXPORT_HEAD); do for d in $(EXPORT_HEAD_DIR);do cp -rf $$i $$d;echo $$i;echo $$d; done;done
+	for i in $(EXPORT_HEAD); do for d in $(EXPORT_HEAD_DIR);do path=$$d/`dirname $$i`;mkdir -p $$path;cp -rf $$i $$path;echo "$$i --> $$path"; done;done
 endif
 clean:
 	rm -f $(TARGET)
@@ -342,6 +343,7 @@ clean:
 #  obj%.o:%.c说明了每一个目标文件的依赖关系
 define cmd_o
 $$(obj-$1): $2/%.o:%.$1 $(MAKEFILE_LIST)
+	mkdir -p `dirname $$@`
 	$(CC) $(cflags) -Wp,-MT,$$@ -Wp,-MMD,$$@.d -c -o $$@ $$<
 endef
 #给出了obj-(SUFIX)分别对应的编译规则
